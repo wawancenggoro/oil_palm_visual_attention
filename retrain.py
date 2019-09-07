@@ -1,19 +1,14 @@
-import os
-from os import walk
-from shutil import copy2
-
 import model as M
 import test_model as N
 from threading import Thread
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 alexnet = "alexnet"
 va_alexnet = "va-alexnet" 
 reva_alexnet = "reva-alexnet"
 fp_alexnet = "fp-alexnet"
 start_alexnet = "start-alexnet"
-every_alexnet = "every-alexnet"
 densenet = "densenet"
 va_densenet = "va-densenet"
 reva_densenet = "reva-densenet"
@@ -43,44 +38,42 @@ N_LABELS = 7
 PRETRAINED = True
 
 # CHECKPOINT_TIMESTAMP = '1560599355'
-# CHECKPOINT_TIMESTAMP = '1564583958'
 CHECKPOINT_TIMESTAMP = ''
-CHECKPOINT_TEST = ''
-# CHECKPOINT_TEST = '1563112018'
-# CHECKPOINT_TEST_TARGET = '1563032942'
 
 # DISTILLATE_WITH = '1560599355'
 DISTILLATE_WITH = ''
 
-CUSTOM_LABEL = 'CV-set-'
-# ==================================================================
-
 # alexnet, va_alexnet, reva_alexnet, fp_alexnet, startva_alexnet,
 # densenet, va_densenet, reva_densenet, fp_densenet, start_densenet, every_densenet, sedensenet, triplelossdensenet
 # resnet, VGG, VGG_Bn
-for MODEL_NAME in [every_densenet]:
-    for OPTIMIZERS in [SGD]:
-        for FREEZE in [False]:
-            print("============================================")
-            print(f"LEARNING_RATE = {LEARNING_RATE}")
-            print(f"LEARNING_RATE_DECAY_STEPS = {LEARNING_RATE_DECAY_STEPS}")
-            print(f"MODEL_NAME = {MODEL_NAME}")
-            print(f"PRETRAINED = {PRETRAINED}")
-            print(f"FREEZE = {FREEZE}")
-            print(f"EPOCHS = {EPOCHS}")
-            print(f"BATCH_SIZE = {BATCH_SIZE}")
-            print(f"N_LABELS = {N_LABELS}")
-            print(f"OPTIMIZERS = {OPTIMIZERS}")
-            if (CHECKPOINT_TIMESTAMP != ''):
-                print(f"CHECKPOINT_TIMESTAMP = {CHECKPOINT_TIMESTAMP}")
-            if (CHECKPOINT_TEST != ''):
-                print(f"CHECKPOINT_TEST = {CHECKPOINT_TEST}")
-                print(f"CHECKPOINT_TEST_TARGET = {CHECKPOINT_TEST_TARGET}")
-            print(f"CUSTOM_LABEL = {CUSTOM_LABEL}")
-            print("============================================")
+for _, item in enumerate([ 
+                          # [densenet, '1564583958'],
+                          # [alexnet, '1564862020'],
+                          # [sedensenet, '1564680042'],
+                          # [every_densenet, '1564680117'],
+                          [every_densenet, '1564680117'],
+                          # [every_densenet, '1565114071'],
+                          # [fp_densenet, '1564683135'],
+                        ]):
+    for i in range(10):
+        N.test_cnn(item[0], densenet, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES, DEBUG_MODE, item[1], '1564583958')
 
-            # N.test_cnn(every_densenet, densenet, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES, DEBUG_MODE, CHECKPOINT_TEST, CHECKPOINT_TEST_TARGET)
-            M.train_cnn(MODEL_NAME, PRETRAINED, FREEZE, EPOCHS, BATCH_SIZE, N_LABELS, OPTIMIZERS, PATH_TO_IMAGES, LEARNING_RATE, WEIGHT_DECAY, LEARNING_RATE_DECAY_STEPS, DEBUG_MODE, CHECKPOINT_TIMESTAMP, DISTILLATE_WITH, CUSTOM_LABEL)
+# for MODEL_NAME in [every_densenet]:
+    # for OPTIMIZERS in [SGD]:
+        # for FREEZE in [False]:
+            # print("============================================")
+            # print(f"LEARNING_RATE = {LEARNING_RATE}")
+            # print(f"LEARNING_RATE_DECAY_STEPS = {LEARNING_RATE_DECAY_STEPS}")
+            # print(f"MODEL_NAME = {MODEL_NAME}")
+            # print(f"PRETRAINED = {PRETRAINED}")
+            # print(f"FREEZE = {FREEZE}")
+            # print(f"EPOCHS = {EPOCHS}")
+            # print(f"BATCH_SIZE = {BATCH_SIZE}")
+            # print(f"N_LABELS = {N_LABELS}")
+            # print(f"OPTIMIZERS = {OPTIMIZERS}")
+            # print(f"CHECKPOINT_TIMESTAMP = {CHECKPOINT_TIMESTAMP}")
+            # print(f"CHECKPOINT_TEST = {CHECKPOINT_TEST}")
+            # print(f"CHECKPOINT_TEST_TARGET = {CHECKPOINT_TEST_TARGET}")
+            # print("============================================")
 
-            # for i in range(5):
-                # M.train_cnn(MODEL_NAME, PRETRAINED, FREEZE, EPOCHS, BATCH_SIZE, N_LABELS, OPTIMIZERS, f'{PATH_TO_IMAGES}/set_{i}', LEARNING_RATE, WEIGHT_DECAY, LEARNING_RATE_DECAY_STEPS, DEBUG_MODE, CHECKPOINT_TIMESTAMP, DISTILLATE_WITH, f'{CUSTOM_LABEL}{i}')
+            # M.train_cnn(MODEL_NAME, PRETRAINED, FREEZE, EPOCHS, BATCH_SIZE, N_LABELS, OPTIMIZERS, PATH_TO_IMAGES, LEARNING_RATE, WEIGHT_DECAY, LEARNING_RATE_DECAY_STEPS, DEBUG_MODE, CHECKPOINT_TIMESTAMP, DISTILLATE_WITH)

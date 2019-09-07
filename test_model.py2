@@ -32,7 +32,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import csv
-from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, confusion_matrix
 import statistics
 
 use_gpu = torch.cuda.is_available()
@@ -52,15 +52,15 @@ def init_model(MODEL_NAME, N_LABELS):
                 or MODEL_NAME == 'every-densenet' 
                 or MODEL_NAME == 'sedensenet'
                 or MODEL_NAME == 'triplelossdensenet'
-            else models.alexnet(pretrained=True) if MODEL_NAME == 'alexnet'
-            else modified_alexnet.alexnet(type=MODEL_NAME, pretrained=True) 
+            else models.alexnet(pretrained=PRETRAINED) if MODEL_NAME == 'alexnet'
+            else modified_alexnet.alexnet(type=MODEL_NAME, pretrained=PRETRAINED) 
                 if MODEL_NAME == 'va-alexnet'
                 or MODEL_NAME == 'reva-alexnet'
                 or MODEL_NAME == 'fp-alexnet'
                 or MODEL_NAME == 'start-alexnet'
-            else models.resnet152(pretrained=True)if MODEL_NAME == 'resnet'
-            else models.vgg16(pretrained=True)if MODEL_NAME == 'VGG'
-            else models.vgg16_bn(pretrained=True)if MODEL_NAME == 'VGG_Bn'
+            else models.resnet152(pretrained=PRETRAINED)if MODEL_NAME == 'resnet'
+            else models.vgg16(pretrained=PRETRAINED)if MODEL_NAME == 'VGG'
+            else models.vgg16_bn(pretrained=PRETRAINED)if MODEL_NAME == 'VGG_Bn'
             else '')
 
     # get num_ftrs based on model name
@@ -157,98 +157,68 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
     model = load_checkpoint(model, CHECKPOINT_PATH)
     model = model.cuda()
 
-    if (CHECKPOINT_PATH_TARGET):
-        model_target = init_model(MODEL_NAME_TARGET, N_LABELS)
-        model_target = load_checkpoint(model_target, CHECKPOINT_PATH_TARGET)
-        model_target = model_target.cuda()
+    model_target = init_model(MODEL_NAME_TARGET, N_LABELS)
+    model_target = load_checkpoint(model_target, CHECKPOINT_PATH_TARGET)
+    model_target = model_target.cuda()
 
     loading_bar = ''
     dataloaders_length = len(dataloaders['test'])
     for i in range(dataloaders_length):
         loading_bar += '-'
 
-    model_labels = []
-    model_pred = []
-    model_target_pred = []
-
     model_pred_bin = []
     model_target_pred_bin = []
+
+    acc_iter = 0
+    model_acc = 0
+    model_target_acc = 0
 
     for phase in ['test']:
         for data in dataloaders[phase]:
             loading_bar = f'={loading_bar}'
             loading_bar = loading_bar[:dataloaders_length]
             print(f'Testing: {loading_bar}', end='\r')
+
             inputs, labels = data
-
-            labels = labels.cpu().data.numpy()
-
             if phase == 'test':
                 inputs = inputs.cuda()
-                model_labels.extend(labels)
                 outputs = model(inputs)
+                outputs_target = model_target(inputs)
+
+                labels = labels.cpu().data.numpy()
                 outputs_pred = torch.max(outputs, dim=1)[1].cpu().data.numpy()
-                model_pred.extend(outputs_pred)
-                if (CHECKPOINT_PATH_TARGET):
-                    outputs_target = model_target(inputs)
-                    outputs_target_pred = torch.max(outputs_target, dim=1)[1].cpu().data.numpy()
-                    model_target_pred.extend(outputs_target_pred)
+                outputs_target_pred = torch.max(outputs_target, dim=1)[1].cpu().data.numpy()
 
-            # if phase == 'test':
-                # for i in range(10):
-                    # inp = inputs.clone()[:, i].cuda()
-                    # model_labels.extend(labels)
-                    # outputs = model(inp)
-                    # outputs_pred = torch.max(outputs, dim=1)[1].cpu().data.numpy()
-                    # model_pred.extend(outputs_pred)
-                    # if (CHECKPOINT_PATH_TARGET):
-                        # outputs_target = model_target(inp)
-                        # outputs_target_pred = torch.max(outputs_target, dim=1)[1].cpu().data.numpy()
-                        # model_target_pred.extend(outputs_target_pred)
+                acc_iter += 1
+                model_acc += accuracy_score(labels, outputs_pred)
+                model_target_acc += accuracy_score(labels, outputs_target_pred)
 
+                for i, _ in enumerate(labels):
+                    model_pred_bin.append(1 if labels[i] == outputs_pred[i] else 0)
+                    model_target_pred_bin.append(1 if labels[i] == outputs_target_pred[i] else 0)
     print('')
-    print(confusion_matrix(model_labels, model_pred, labels=[1, 0, 2, 4, 3, 5, 6]))
-    if (CHECKPOINT_PATH_TARGET):
-        print(confusion_matrix(model_labels, model_target_pred, labels=[1, 0, 2, 4, 3, 5, 6]))
-    print('============================================')
-    print('precision: ', precision_score(model_labels, model_pred, average='macro'))
-    print('recall:    ', recall_score(model_labels, model_pred, average='macro'))
-    print('f1:        ', f1_score(model_labels, model_pred, average='macro'))
-    if (CHECKPOINT_PATH_TARGET):
-        print('============================================')
-        print('precision: ', precision_score(model_labels, model_target_pred, average='macro'))
-        print('recall:    ', recall_score(model_labels, model_target_pred, average='macro'))
-        print('f1:        ', f1_score(model_labels, model_target_pred, average='macro'))
-        print('============================================')
 
-    for i, _ in enumerate(model_labels):
-        model_pred_bin.append(1 if model_labels[i] == model_pred[i] else 0)
-        if (CHECKPOINT_PATH_TARGET):
-            model_target_pred_bin.append(1 if model_labels[i] == model_target_pred[i] else 0)
-
-    print(accuracy_score(model_labels, model_pred))
-
-    if (CHECKPOINT_PATH_TARGET):
-        print(accuracy_score(model_labels, model_target_pred))
-        tp = 0
-        fp = 0
-        tn = 0
-        fn = 0
-        for i, _ in enumerate(model_pred_bin):
-            if model_pred_bin[i] == model_target_pred_bin[i]:
-                if model_pred_bin[i] == 1:
-                    tp += 1
-                else:
-                    tn += 1
+    tp = 0
+    fp = 0
+    tn = 0
+    fn = 0
+    for i, _ in enumerate(model_pred_bin):
+        if model_pred_bin[i] == model_target_pred_bin[i]:
+            if model_pred_bin[i] == 1:
+                tp += 1
             else:
-                if model_pred_bin[i] == 0:
-                    fp += 1
-                else:
-                    fn += 1
+                tn += 1
+        else:
+            if model_pred_bin[i] == 0:
+                fp += 1
+            else:
+                fn += 1
 
-        print(f"True positive = {tp}")
-        print(f"False positive = {fp}")
-        print(f"False negative = {fn}")
-        print(f"True negative = {tn}")
+    print(model_acc / acc_iter)
+    print(model_target_acc / acc_iter)
+    print(f"True positive = {tp}")
+    print(f"False positive = {fp}")
+    print(f"False negative = {fn}")
+    print(f"True negative = {tn}")
 
-        print("Finish testing")
+    print("Finish testing")

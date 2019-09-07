@@ -7,6 +7,8 @@ import torch.utils.model_zoo as model_zoo
 from collections import OrderedDict
 from tensorboardX import SummaryWriter
 import torchvision.utils as vutils
+import numpy as np
+import time
 
 import pdb
 
@@ -137,11 +139,28 @@ class _SEBlock(nn.Module):
 
 
 def interpolate(x, multiplier=2, fixed_size=0, divider=2, absolute_channel = 0, mode='nearest'):
+    if mode == 'bilinear':
+        return F.interpolate(x.view(x.size()[0], x.size()[1], x.size()[2], x.size()[3]),
+                                size=(fixed_size if fixed_size != 0 else x.size()[2] * multiplier, 
+                                        fixed_size if fixed_size != 0 else x.size()[3] * multiplier),
+                                mode=mode)
+
     return F.interpolate(x.view(1, x.size()[0], x.size()[1], x.size()[2], x.size()[3]),
                             size=(x.size()[1] // divider if absolute_channel == 0 else absolute_channel,
                                     fixed_size if fixed_size != 0 else x.size()[2] * multiplier, 
                                     fixed_size if fixed_size != 0 else x.size()[3] * multiplier),
                             mode=mode)[0]
+
+def print_attention(input_tensor):
+    attention1_res = interpolate(input_tensor, fixed_size=224, absolute_channel=1, mode='bilinear')
+    print(attention1_res.size())
+    np.save(f'attention_image/{time.time()}', attention1_res[0].cpu().data.numpy())
+    # for i in range(attention1_res[0].size()[0]):
+        # torch.save(model.state_dict(), path_name)
+        # print(attention1_res[0][i].cpu().data.numpy().shape)
+        # print(attention1_res[0][i].size())
+        # print(attention1_res[0][i])
+        # break
 
 
 # VA Densenet
@@ -714,7 +733,7 @@ class DenseNetEvery(nn.Module):
 
         db1 = self.denseblock1(self.features(x))
         attention1 = F.relu(self.everyconv2dblock256(db1))
-        print(attention1)
+        print_attention(attention1)
         db1 = attention1 + db1
 
         db2 = self.denseblock2(self.transition1(db1))
@@ -728,17 +747,6 @@ class DenseNetEvery(nn.Module):
         db4 = self.denseblock4(self.transition3(db3))
         attention4 = F.relu(self.everyconv2dblock1024_2(db4))
         db4 = attention4 + db4
-
-# def interpolate(x, multiplier=2, fixed_size=0, divider=2, absolute_channel = 0, mode='nearest'):
-        # global_attention = torch.cat((interpolate(attention1, fixed_size = 7, absolute_channel = 256),
-                                      # interpolate(attention2, fixed_size = 7, absolute_channel = 512),
-                                      # interpolate(attention3, fixed_size = 7, absolute_channel = 1024),
-                                      # attention4
-                                     # ), dim = 1)
-        # global_attention = self.everyconv2dblock1(global_attention)
-        # global_attention = self.softmax(global_attention)
-
-        # db4 = db4 + global_attention
 
         db4 = F.relu(db4, inplace=True)
         db4 = F.avg_pool2d(db4, kernel_size=7, stride=1).view(x.size(0), -1)
