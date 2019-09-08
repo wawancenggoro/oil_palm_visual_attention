@@ -151,16 +151,13 @@ def interpolate(x, multiplier=2, fixed_size=0, divider=2, absolute_channel = 0, 
                                     fixed_size if fixed_size != 0 else x.size()[3] * multiplier),
                             mode=mode)[0]
 
-def print_attention(input_tensor):
+
+def print_attention(org_image, input_tensor):
     attention1_res = interpolate(input_tensor, fixed_size=224, absolute_channel=1, mode='bilinear')
-    print(attention1_res.size())
-    np.save(f'attention_image/{time.time()}', attention1_res[0].cpu().data.numpy())
-    # for i in range(attention1_res[0].size()[0]):
-        # torch.save(model.state_dict(), path_name)
-        # print(attention1_res[0][i].cpu().data.numpy().shape)
-        # print(attention1_res[0][i].size())
-        # print(attention1_res[0][i])
-        # break
+
+    current_time = time.time()
+    np.save(f'attention_image/org_{current_time}', org_image[0].cpu().data.numpy())
+    np.save(f'attention_image/{current_time}', attention1_res[0].cpu().data.numpy())
 
 
 # VA Densenet
@@ -733,7 +730,7 @@ class DenseNetEvery(nn.Module):
 
         db1 = self.denseblock1(self.features(x))
         attention1 = F.relu(self.everyconv2dblock256(db1))
-        print_attention(attention1)
+        print_attention(x, attention1)
         db1 = attention1 + db1
 
         db2 = self.denseblock2(self.transition1(db1))
