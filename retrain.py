@@ -55,7 +55,7 @@ for _, item in enumerate([
                           # [every_densenet, '1565114071'],
                           # [fp_densenet, '1564683135'],
                         ]):
-    for i in range(10):
+    for i in range(1):
         N.test_cnn(item[0], densenet, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES, DEBUG_MODE, item[1], '1564583958')
 
 # for MODEL_NAME in [every_densenet]:

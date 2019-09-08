@@ -152,12 +152,14 @@ def interpolate(x, multiplier=2, fixed_size=0, divider=2, absolute_channel = 0, 
                             mode=mode)[0]
 
 
-def print_attention(org_image, input_tensor):
-    attention1_res = interpolate(input_tensor, fixed_size=224, absolute_channel=1, mode='bilinear')
+def print_attention(org_image, input_tensor, gt, timestamp, custom_label):
+    attention_res = interpolate(input_tensor, fixed_size=224, absolute_channel=1, mode='bilinear')
+    for i in range(len(gt)):
+        if not os.path.exists(f'attention_image/{gt[i]}_{i}_{timestamp}'):
+            os.makedirs(f'attention_image/{gt[i]}_{i}_{timestamp}')
 
-    current_time = time.time()
-    np.save(f'attention_image/org_{current_time}', org_image[0].cpu().data.numpy())
-    np.save(f'attention_image/{current_time}', attention1_res[0].cpu().data.numpy())
+        np.save(f'attention_image/{gt[i]}_{i}_{timestamp}/org_{timestamp}', org_image[i].cpu().data.numpy())
+        np.save(f'attention_image/{gt[i]}_{i}_{timestamp}/{timestamp}_{custom_label}', attention_res[i].cpu().data.numpy())
 
 
 # VA Densenet
@@ -724,25 +726,29 @@ class DenseNetEvery(nn.Module):
             elif isinstance(m, nn.Linear):
                 nn.init.constant_(m.bias, 0)
 
-    def forward(self, x, epoch = -1):
+    def forward(self, x, gt):
         # =============================================================
         # Phase 1 Densenet
+        current_timestamp = time.time()
 
         db1 = self.denseblock1(self.features(x))
         attention1 = F.relu(self.everyconv2dblock256(db1))
-        print_attention(x, attention1)
+        print_attention(x, attention1, gt, current_timestamp, custom_label='256')
         db1 = attention1 + db1
 
         db2 = self.denseblock2(self.transition1(db1))
         attention2 = F.relu(self.everyconv2dblock512(db2))
+        print_attention(x, attention2, gt, current_timestamp, custom_label='512')
         db2 = attention2 + db2
 
         db3 = self.denseblock3(self.transition2(db2))
         attention3 = F.relu(self.everyconv2dblock1024_1(db3))
+        print_attention(x, attention3, gt, current_timestamp, custom_label='1024a')
         db3 = attention3 + db3
 
         db4 = self.denseblock4(self.transition3(db3))
         attention4 = F.relu(self.everyconv2dblock1024_2(db4))
+        print_attention(x, attention4, gt, current_timestamp, custom_label='1024b')
         db4 = attention4 + db4
 
         db4 = F.relu(db4, inplace=True)

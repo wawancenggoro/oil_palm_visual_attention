@@ -186,11 +186,17 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
             if phase == 'test':
                 inputs = inputs.cuda()
                 model_labels.extend(labels)
-                outputs = model(inputs)
+                try:
+                    outputs = model(inputs, labels)
+                except:
+                    outputs = model(inputs)
                 outputs_pred = torch.max(outputs, dim=1)[1].cpu().data.numpy()
                 model_pred.extend(outputs_pred)
                 if (CHECKPOINT_PATH_TARGET):
-                    outputs_target = model_target(inputs)
+                    try:
+                        outputs_target = model_target(inputs, labels)
+                    except:
+                        outputs_target = model_target(inputs)
                     outputs_target_pred = torch.max(outputs_target, dim=1)[1].cpu().data.numpy()
                     model_target_pred.extend(outputs_target_pred)
 
