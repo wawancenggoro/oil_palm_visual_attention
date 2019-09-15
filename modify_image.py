@@ -39,5 +39,5 @@ for foldername in sorted(os.listdir('attention_image')):
             elif org_pattern.match(filename):
                 numpy_image = np.load(f'attention_image/{foldername}/{filename}')
                 org_image = torch.from_numpy(numpy_image).float().to('cuda:0')
-                image_name = f"org_{filename.split('_')[1].split('.')[0]}.jpg"
+                image_name = f"0_org_{filename.split('_')[1].split('.')[0]}.jpg"
                 vutils.save_image(org_image, f'attention_image/result/{foldername}/{image_name}', normalize=True)
