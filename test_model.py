@@ -145,9 +145,9 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
     }
 
     # create train/val dataloaders
-    transformed_datasets = {x: datasets.ImageFolder(os.path.join(PATH_TO_IMAGES, x), data_transforms[x]) for x in ['val']}
+    transformed_datasets = {x: datasets.ImageFolder(os.path.join(PATH_TO_IMAGES, x), data_transforms[x]) for x in ['test']}
 
-    dataloaders = {x: torch.utils.data.DataLoader(transformed_datasets[x], batch_size=BATCH_SIZE, shuffle=True, num_workers=0) for x in ['val']}
+    dataloaders = {x: torch.utils.data.DataLoader(transformed_datasets[x], batch_size=BATCH_SIZE, shuffle=True, num_workers=0) for x in ['test']}
 
     # please do not attempt to train without GPU as will take excessively long
     if not use_gpu:
@@ -163,7 +163,7 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
         model_target = model_target.cuda()
 
     loading_bar = ''
-    dataloaders_length = len(dataloaders['val'])
+    dataloaders_length = len(dataloaders['test'])
     for i in range(dataloaders_length):
         loading_bar += '-'
 
@@ -174,9 +174,9 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
     model_pred_bin = []
     model_target_pred_bin = []
 
-    for phase in ['val']:
-        model.eval()
-        model_target.eval()
+    for phase in ['test']:
+        model.train(False)
+        model_target.train(False)
         for data in dataloaders[phase]:
             loading_bar = f'={loading_bar}'
             loading_bar = loading_bar[:dataloaders_length]
@@ -185,7 +185,7 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
 
             labels = labels.cpu().data.numpy()
 
-            if phase == 'val':
+            if phase == 'test':
                 inputs = inputs.cuda()
                 model_labels.extend(labels)
                 try:

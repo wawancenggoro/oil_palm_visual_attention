@@ -235,7 +235,7 @@ def train_model(
                 # ===========================================================
                 # train datasets
                 if phase == "train":
-                    for i in range(10):
+                    for i in range(inputs.size()[1]):
                         optimizer.zero_grad()
 
                         inp = inputs.clone()[:, i]
@@ -419,7 +419,7 @@ def train_cnn(MODEL_NAME, PRETRAINED, FREEZE, EPOCHS, BATCH_SIZE, N_LABELS, OPTI
     data_transforms = {
         'train': transforms.Compose([
             transforms.Resize(256),
-            transforms.TenCrop(224),
+            transforms.FiveCrop(224),
             transforms.Lambda(lambda crops: torch.stack([normalize(transforms.ToTensor()(crop)) for crop in crops]))
         ]),
         'val': transforms.Compose([
