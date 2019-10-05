@@ -733,22 +733,22 @@ class DenseNetEvery(nn.Module):
 
         db1 = self.denseblock1(self.features(x))
         attention1 = F.relu(self.everyconv2dblock256(db1))
-        print_attention(x, attention1, gt, current_timestamp, custom_label='256')
+        # print_attention(x, attention1, gt, current_timestamp, custom_label='256')
         db1 = attention1 + db1
 
         db2 = self.denseblock2(self.transition1(db1))
         attention2 = F.relu(self.everyconv2dblock512(db2))
-        print_attention(x, attention2, gt, current_timestamp, custom_label='512')
+        # print_attention(x, attention2, gt, current_timestamp, custom_label='512')
         db2 = attention2 + db2
 
         db3 = self.denseblock3(self.transition2(db2))
         attention3 = F.relu(self.everyconv2dblock1024_1(db3))
-        print_attention(x, attention3, gt, current_timestamp, custom_label='1024a')
+        # print_attention(x, attention3, gt, current_timestamp, custom_label='1024a')
         db3 = attention3 + db3
 
         db4 = self.denseblock4(self.transition3(db3))
         attention4 = F.relu(self.everyconv2dblock1024_2(db4))
-        print_attention(x, attention4, gt, current_timestamp, custom_label='1024b')
+        # print_attention(x, attention4, gt, current_timestamp, custom_label='1024b')
         db4 = attention4 + db4
 
         db4 = F.relu(db4, inplace=True)

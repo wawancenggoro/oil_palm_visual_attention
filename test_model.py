@@ -145,9 +145,9 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
     }
 
     # create train/val dataloaders
-    transformed_datasets = {x: datasets.ImageFolder(os.path.join(PATH_TO_IMAGES, x), data_transforms[x]) for x in ['test']}
+    transformed_datasets = {x: datasets.ImageFolder(os.path.join(PATH_TO_IMAGES, x), data_transforms[x]) for x in ['val']}
 
-    dataloaders = {x: torch.utils.data.DataLoader(transformed_datasets[x], batch_size=BATCH_SIZE, shuffle=True, num_workers=0) for x in ['test']}
+    dataloaders = {x: torch.utils.data.DataLoader(transformed_datasets[x], batch_size=BATCH_SIZE, shuffle=True, num_workers=0) for x in ['val']}
 
     # please do not attempt to train without GPU as will take excessively long
     if not use_gpu:
@@ -163,7 +163,7 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
         model_target = model_target.cuda()
 
     loading_bar = ''
-    dataloaders_length = len(dataloaders['test'])
+    dataloaders_length = len(dataloaders['val'])
     for i in range(dataloaders_length):
         loading_bar += '-'
 
@@ -174,7 +174,9 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
     model_pred_bin = []
     model_target_pred_bin = []
 
-    for phase in ['test']:
+    for phase in ['val']:
+        model.eval()
+        model_target.eval()
         for data in dataloaders[phase]:
             loading_bar = f'={loading_bar}'
             loading_bar = loading_bar[:dataloaders_length]
@@ -183,7 +185,7 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
 
             labels = labels.cpu().data.numpy()
 
-            if phase == 'test':
+            if phase == 'val':
                 inputs = inputs.cuda()
                 model_labels.extend(labels)
                 try:
@@ -199,18 +201,6 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
                         outputs_target = model_target(inputs)
                     outputs_target_pred = torch.max(outputs_target, dim=1)[1].cpu().data.numpy()
                     model_target_pred.extend(outputs_target_pred)
-
-            # if phase == 'test':
-                # for i in range(10):
-                    # inp = inputs.clone()[:, i].cuda()
-                    # model_labels.extend(labels)
-                    # outputs = model(inp)
-                    # outputs_pred = torch.max(outputs, dim=1)[1].cpu().data.numpy()
-                    # model_pred.extend(outputs_pred)
-                    # if (CHECKPOINT_PATH_TARGET):
-                        # outputs_target = model_target(inp)
-                        # outputs_target_pred = torch.max(outputs_target, dim=1)[1].cpu().data.numpy()
-                        # model_target_pred.extend(outputs_target_pred)
 
     print('')
     print(confusion_matrix(model_labels, model_pred, labels=[1, 0, 2, 4, 3, 5, 6]))

@@ -50,10 +50,10 @@ for _, item in enumerate([
                           # [densenet, '1564583958'],
                           # [alexnet, '1564862020'],
                           # [sedensenet, '1564680042'],
-                          # [every_densenet, '1564680117'],
+                          [every_densenet, '1564680117'],
                           # [every_densenet, '1565114071'],
                           # [every_densenet, '1565142577'],
-                          [fp_densenet, '1564683135']
+                          # [fp_densenet, '1564683135'],
                         ]):
     for i in range(1):
         # a = 1
