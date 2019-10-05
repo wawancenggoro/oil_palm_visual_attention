@@ -34,15 +34,15 @@ import numpy as np
 import csv
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, f1_score
 import statistics
+    
+import modified_densenet
+import modified_alexnet
 
 use_gpu = torch.cuda.is_available()
 gpu_count = torch.cuda.device_count()
 
 def init_model(MODEL_NAME, N_LABELS):
     # Check model used
-    import modified_densenet
-    import modified_alexnet
-
     model = (models.densenet121(pretrained=True) if MODEL_NAME == 'densenet' 
             else modified_densenet.densenet121(type=MODEL_NAME, pretrained=True) 
                 if MODEL_NAME == 'va-densenet' 

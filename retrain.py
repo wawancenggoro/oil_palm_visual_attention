@@ -2,7 +2,7 @@ import model as M
 import test_model as N
 from threading import Thread
 
-DEBUG_MODE = False
+DEBUG_MODE = True
 
 alexnet = "alexnet"
 va_alexnet = "va-alexnet" 
@@ -51,15 +51,16 @@ for _, item in enumerate([
                           # [alexnet, '1564862020'],
                           # [sedensenet, '1564680042'],
                           # [every_densenet, '1564680117'],
-                          [every_densenet, '1564680117'],
                           # [every_densenet, '1565114071'],
-                          # [fp_densenet, '1564683135'],
+                          # [every_densenet, '1565142577'],
+                          [fp_densenet, '1564683135']
                         ]):
     for i in range(1):
+        # a = 1
         N.test_cnn(item[0], densenet, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES, DEBUG_MODE, item[1], '1564583958')
 
-# for MODEL_NAME in [every_densenet]:
-    # for OPTIMIZERS in [SGD]:
+# for MODEL_NAME in [fp_densenet]:
+     # for OPTIMIZERS in [SGD]:
         # for FREEZE in [False]:
             # print("============================================")
             # print(f"LEARNING_RATE = {LEARNING_RATE}")
@@ -74,6 +75,8 @@ for _, item in enumerate([
             # print(f"CHECKPOINT_TIMESTAMP = {CHECKPOINT_TIMESTAMP}")
             # print(f"CHECKPOINT_TEST = {CHECKPOINT_TEST}")
             # print(f"CHECKPOINT_TEST_TARGET = {CHECKPOINT_TEST_TARGET}")
+            # # print(f"CHECKPOINT_TEST = {CHECKPOINT_TEST}")
+            # # print(f"CHECKPOINT_TEST_TARGET = {CHECKPOINT_TEST_TARGET}")
             # print("============================================")
 
             # M.train_cnn(MODEL_NAME, PRETRAINED, FREEZE, EPOCHS, BATCH_SIZE, N_LABELS, OPTIMIZERS, PATH_TO_IMAGES, LEARNING_RATE, WEIGHT_DECAY, LEARNING_RATE_DECAY_STEPS, DEBUG_MODE, CHECKPOINT_TIMESTAMP, DISTILLATE_WITH)
