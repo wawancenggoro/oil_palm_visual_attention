@@ -1,5 +1,7 @@
 NEW_DATASET/*
+NEW_DATASET_AUGMENTED/*
 results
 tar_checkpoints
 runs
 attention_image/*
+__pycache__
