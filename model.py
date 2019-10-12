@@ -244,6 +244,8 @@ def train_model(
                         num_of_steps += 1
                         outputs = model(inp)
 
+                        if distillate_time != '':
+                            labels = get_distillate_output(distillate_results, distillate_index, outputs.shape[0])
                         if(isinstance(outputs, list)):
                             current_loss = []
 
@@ -258,6 +260,15 @@ def train_model(
                             output_acc += accuracy_score(labels.cpu().data.numpy(), combined_pred.cpu().data.numpy())
 
                             loss = sum(current_loss[0:-1]) / len(current_loss[0:-1]) + (current_loss[-1] / 2)
+                        elif(len(outputs) == 4):
+                            current_loss = []
+
+                            for output_item in outputs:
+                                current_loss.append(criterion(output_item, labels))
+
+                            loss = sum(current_loss)
+                            outputs_pred = torch.max(outputs[0], dim=1)[1]
+                            output_acc += accuracy_score(labels.cpu().data.numpy(), outputs_pred.cpu().data.numpy())
                         else:
                             # get output pred and get accuracy
                             if distillate_time != '':
@@ -294,6 +305,15 @@ def train_model(
                         
                         output_acc += accuracy_score(labels.cpu().data.numpy(), combined_pred.cpu().data.numpy())
                         loss = sum(current_loss[0:-1]) / len(current_loss[0:-1]) + (current_loss[-1] / 2)
+                    elif(len(outputs) == 4):
+                            current_loss = []
+
+                            for output_item in outputs:
+                                current_loss.append(criterion(output_item, labels))
+
+                            loss = sum(current_loss)
+                            outputs_pred = torch.max(outputs[0], dim=1)[1]
+                            output_acc += accuracy_score(labels.cpu().data.numpy(), outputs_pred.cpu().data.numpy())
                     else:
                         if distillate_time != '':
                             loss = criterion(outputs, get_distillate_output(distillate_results, distillate_index, outputs.shape[0]))
@@ -498,6 +518,11 @@ def train_cnn(MODEL_NAME, PRETRAINED, FREEZE, EPOCHS, BATCH_SIZE, N_LABELS, OPTI
         model.fc = nn.Linear(num_ftrs, N_LABELS)
     else:
         raise ValueError("Error model name")
+
+    if MODEL_NAME == 'every-densenet':
+        model.classifier1 = nn.Linear(model.classifier1.in_features, N_LABELS)
+        model.classifier2 = nn.Linear(model.classifier2.in_features, N_LABELS)
+        model.classifier3 = nn.Linear(model.classifier3.in_features, N_LABELS)
 
     if CHECKPOINT_PATH != '':
         model = load_checkpoint(model, CHECKPOINT_PATH)
