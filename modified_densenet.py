@@ -153,6 +153,7 @@ def interpolate(x, multiplier=2, fixed_size=0, divider=2, absolute_channel = 0, 
 
 
 def print_attention(org_image, input_tensor, gt, timestamp, custom_label):
+    # gt = ground truth label
     attention_res = interpolate(input_tensor, fixed_size=224, absolute_channel=1, mode='bilinear')
     for i in range(len(gt)):
         if not os.path.exists(f'attention_image/{gt[i]}_{i}_{timestamp}'):
@@ -726,7 +727,7 @@ class DenseNetEvery(nn.Module):
             elif isinstance(m, nn.Linear):
                 nn.init.constant_(m.bias, 0)
 
-    def forward(self, x, gt):
+    def forward(self, x, gt = 0):
         # =============================================================
         # Phase 1 Densenet
         current_timestamp = time.time()

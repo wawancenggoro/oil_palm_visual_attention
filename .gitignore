@@ -1,6 +1,7 @@
 NEW_DATASET/*
 NEW_DATASET_AUGMENTED/*
-results
+results/*
+results_csv/*
 tar_checkpoints
 runs
 attention_image/*
