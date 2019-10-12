@@ -330,9 +330,12 @@ def train_model(
                 distillate_index += 1
                 # ===========================================================
 
+            for data in dataloaders['train']:
+                dataloaders_crop_count, _ = data
+                break
             if phase == 'train':
-                output_acc = output_acc / len(dataloaders[phase]) / 10
-                epoch_loss = running_loss / dataset_sizes[phase] / 10
+                output_acc = output_acc / len(dataloaders[phase]) / dataloaders_crop_count.size()[1]
+                epoch_loss = running_loss / dataset_sizes[phase] / dataloaders_crop_count.size()[1]
                 last_train_loss = epoch_loss
                 training_print = f'{phase} epoch {epoch}: acc {output_acc:.2f} loss {epoch_loss:.4f} with data size {dataset_sizes[phase]}'
 

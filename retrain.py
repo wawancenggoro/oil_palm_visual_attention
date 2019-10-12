@@ -2,7 +2,7 @@ import model as M
 import test_model as N
 from threading import Thread
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 alexnet = "alexnet"
 va_alexnet = "va-alexnet" 
@@ -85,10 +85,10 @@ for MODEL_NAME in [every_densenet]:
             print(f"N_LABELS = {N_LABELS}")
             print(f"OPTIMIZERS = {OPTIMIZERS}")
             print(f"CHECKPOINT_TIMESTAMP = {CHECKPOINT_TIMESTAMP}")
-            # # print(f"CHECKPOINT_TEST = {CHECKPOINT_TEST}")
-            # # print(f"CHECKPOINT_TEST_TARGET = {CHECKPOINT_TEST_TARGET}")
-            # # print(f"CHECKPOINT_TEST = {CHECKPOINT_TEST}")
-            # # print(f"CHECKPOINT_TEST_TARGET = {CHECKPOINT_TEST_TARGET}")
+            # print(f"CHECKPOINT_TEST = {CHECKPOINT_TEST}")
+            # print(f"CHECKPOINT_TEST_TARGET = {CHECKPOINT_TEST_TARGET}")
+            # print(f"CHECKPOINT_TEST = {CHECKPOINT_TEST}")
+            # print(f"CHECKPOINT_TEST_TARGET = {CHECKPOINT_TEST_TARGET}")
             print("============================================")
 
             M.train_cnn(MODEL_NAME, PRETRAINED, FREEZE, EPOCHS, BATCH_SIZE, N_LABELS, OPTIMIZERS, PATH_TO_IMAGES, LEARNING_RATE, WEIGHT_DECAY, LEARNING_RATE_DECAY_STEPS, DEBUG_MODE, CHECKPOINT_TIMESTAMP, DISTILLATE_WITH)
