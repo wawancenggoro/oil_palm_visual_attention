@@ -96,6 +96,11 @@ def init_model(MODEL_NAME, N_LABELS):
         model.fc = nn.Linear(num_ftrs, N_LABELS)
     else:
         raise ValueError("Error model name")
+   
+    if (MODEL_NAME == 'every-densenet'):
+        model.classifier1 = nn.Linear(model.classifier1.in_features, N_LABELS)
+        model.classifier2 = nn.Linear(model.classifier2.in_features, N_LABELS)
+        model.classifier3 = nn.Linear(model.classifier3.in_features, N_LABELS)
 
     return model
 
@@ -176,7 +181,8 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
 
     for phase in ['test']:
         model.train(False)
-        model_target.train(False)
+        if CHECKPOINT_PATH_TARGET:
+            model_target.train(False)
         for data in dataloaders[phase]:
             loading_bar = f'={loading_bar}'
             loading_bar = loading_bar[:dataloaders_length]
@@ -192,7 +198,10 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
                     outputs = model(inputs, labels)
                 except:
                     outputs = model(inputs)
-                outputs_pred = torch.max(outputs, dim=1)[1].cpu().data.numpy()
+                if len(outputs) == 4:
+                    outputs_pred = torch.max(outputs[1], dim=1)[1].cpu().data.numpy()
+                else:
+                    outputs_pred = torch.max(outputs, dim=1)[1].cpu().data.numpy()
                 model_pred.extend(outputs_pred)
                 if (CHECKPOINT_PATH_TARGET):
                     try:
