@@ -260,7 +260,8 @@ def train_model(
                             output_acc += accuracy_score(labels.cpu().data.numpy(), combined_pred.cpu().data.numpy())
 
                             loss = sum(current_loss[0:-1]) / len(current_loss[0:-1]) + (current_loss[-1] / 2)
-                        elif(len(outputs) == 4):
+                        # if outputs.size is 3 dimensional from new resatt
+                        elif(len(outputs.size()) == 3):
                             current_loss = []
 
                             for output_item in outputs:
@@ -285,7 +286,8 @@ def train_model(
                         running_loss += loss.item() * batch_size
                 # ===========================================================
                 # val datasets
-                else:
+                # else:
+                elif phase == "val":
                     optimizer.zero_grad()
                     inputs = inputs.cuda()
                     labels = labels.cuda()
@@ -305,15 +307,13 @@ def train_model(
                         
                         output_acc += accuracy_score(labels.cpu().data.numpy(), combined_pred.cpu().data.numpy())
                         loss = sum(current_loss[0:-1]) / len(current_loss[0:-1]) + (current_loss[-1] / 2)
-                    elif(len(outputs) == 4):
-                            current_loss = []
+                    elif(len(outputs.size()) == 3):
+                        for output_item in outputs:
+                            current_loss.append(criterion(output_item, labels))
 
-                            for output_item in outputs:
-                                current_loss.append(criterion(output_item, labels))
-
-                            loss = sum(current_loss)
-                            outputs_pred = torch.max(outputs[0], dim=1)[1]
-                            output_acc += accuracy_score(labels.cpu().data.numpy(), outputs_pred.cpu().data.numpy())
+                        loss = sum(current_loss)
+                        outputs_pred = torch.max(outputs[0], dim=1)[1]
+                        output_acc += accuracy_score(labels.cpu().data.numpy(), outputs_pred.cpu().data.numpy())
                     else:
                         if distillate_time != '':
                             loss = criterion(outputs, get_distillate_output(distillate_results, distillate_index, outputs.shape[0]))
