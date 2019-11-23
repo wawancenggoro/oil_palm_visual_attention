@@ -736,30 +736,30 @@ class DenseNetEvery(nn.Module):
         current_timestamp = time.time()
 
         db1 = self.denseblock1(self.features(x))
-        attention1 = F.relu(self.everyconv2dblock256(db1))
+        attention1 = self.sigmoid(self.everyconv2dblock256(db1))
         # print_attention(x, attention1, gt, current_timestamp, custom_label='256')
-        att1 = attention1 + db1
+        att1 = attention1 * db1
         att1 = F.avg_pool2d(att1, kernel_size=56, stride=1).view(x.size(0), -1)
         att1 = self.classifier1(att1)
 
         db2 = self.denseblock2(self.transition1(db1))
-        attention2 = F.relu(self.everyconv2dblock512(db2))
+        attention2 = self.sigmoid(self.everyconv2dblock512(db2))
         # print_attention(x, attention2, gt, current_timestamp, custom_label='512')
-        att2 = attention2 + db2
+        att2 = attention2 * db2
         att2 = F.avg_pool2d(att2, kernel_size=28, stride=1).view(x.size(0), -1)
         att2 = self.classifier2(att2)
 
         db3 = self.denseblock3(self.transition2(db2))
-        attention3 = F.relu(self.everyconv2dblock1024_1(db3))
+        attention3 = self.sigmoid(self.everyconv2dblock1024_1(db3))
         # print_attention(x, attention3, gt, current_timestamp, custom_label='1024a')
-        att3 = attention3 + db3
+        att3 = attention3 * db3
         att3 = F.avg_pool2d(att3, kernel_size=14, stride=1).view(x.size(0), -1)
         att3 = self.classifier3(att3)
 
         db4 = self.denseblock4(self.transition3(db3))
-        attention4 = F.relu(self.everyconv2dblock1024_2(db4))
+        attention4 = self.sigmoid(self.everyconv2dblock1024_2(db4))
         # print_attention(x, attention4, gt, current_timestamp, custom_label='1024b')
-        att4 = attention4 + db4
+        att4 = attention4 * db4
 
         db4 = F.relu(db4, inplace=True)
         db4 = F.avg_pool2d(db4, kernel_size=7, stride=1).view(x.size(0), -1)

@@ -2,7 +2,7 @@ import model as M
 import test_model as N
 from threading import Thread
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 alexnet = "alexnet"
 va_alexnet = "va-alexnet" 
@@ -31,7 +31,7 @@ WEIGHT_DECAY = 1e-4
 LEARNING_RATE = 0.001
 LEARNING_RATE_DECAY_STEPS = 16
 
-EPOCHS = 50
+EPOCHS = 100
 BATCH_SIZE = 16
 N_LABELS = 7
 # FREEZE = True
@@ -52,8 +52,14 @@ for _, item in enumerate([
                           # [sedensenet, '1564680042'],
                           # [every_densenet, '1570275876'],
 
-                          [every_densenet, '1570866712'],
-                          # [every_densenet, '1570509863'],
+                          # [every_densenet, '1570866712'],
+                          # [every_densenet, '1570867738'],
+                          # [every_densenet, '1571059035'],
+                          # [every_densenet, '1571059048'],
+                          # [every_densenet, '1571496557'],
+                          # [every_densenet, '1571496571'],
+                          [every_densenet, '1571533226'],
+                          # [every_densenet, '1571533241'],
 
                           # [densenet, '1570267775'],
                           # [densenet, '1570425915'],
@@ -68,9 +74,10 @@ for _, item in enumerate([
                           # [fp_densenet, '1564683135'],
                         ]):
     for i in range(1):
-        N.test_cnn(item[0], densenet, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES, DEBUG_MODE, item[1], '')
+        # i = 5
+        N.test_cnn(item[0], densenet, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES, DEBUG_MODE, item[1], '1570946462')
 
-# for MODEL_NAME in [densenet]:
+# for MODEL_NAME in [every_densenet, every_densenet]:
      # for OPTIMIZERS in [SGD]:
         # for FREEZE in [False]:
             # print("============================================")
@@ -90,4 +97,4 @@ for _, item in enumerate([
             # # print(f"CHECKPOINT_TEST_TARGET = {CHECKPOINT_TEST_TARGET}")
             # print("============================================")
 
-            # M.train_cnn(MODEL_NAME, PRETRAINED, FREEZE, EPOCHS, BATCH_SIZE, N_LABELS, OPTIMIZERS, PATH_TO_IMAGES, LEARNING_RATE, WEIGHT_DECAY, LEARNING_RATE_DECAY_STEPS, DEBUG_MODE, CHECKPOINT_TIMESTAMP, DISTILLATE_WITH)
+            # M.train_cnn(MODEL_NAME, PRETRAINED, FREEZE, EPOCHS, BATCH_SIZE, N_LABELS, OPTIMIZERS, PATH_TO_IMAGES, LEARNING_RATE, WEIGHT_DECAY, LEARNING_RATE_DECAY_STEPS, DEBUG_MODE, CHECKPOINT_TIMESTAMP, DISTILLATE_WITH, 'sigmoid')

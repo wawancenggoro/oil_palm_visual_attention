@@ -32,7 +32,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import csv
-from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, f1_score, classification_report
 import statistics
     
 import modified_densenet
@@ -216,14 +216,16 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
     if (CHECKPOINT_PATH_TARGET):
         print(confusion_matrix(model_labels, model_target_pred, labels=[1, 0, 2, 4, 3, 5, 6]))
     print('============================================')
-    print('precision: ', precision_score(model_labels, model_pred, average='macro'))
-    print('recall:    ', recall_score(model_labels, model_pred, average='macro'))
-    print('f1:        ', f1_score(model_labels, model_pred, average='macro'))
+    # print('precision: ', precision_score(model_labels, model_pred, average='macro'))
+    # print('recall:    ', recall_score(model_labels, model_pred, average='macro'))
+    # print('f1:        ', f1_score(model_labels, model_pred, average='macro'))
+    print(classification_report(model_labels, model_pred))
     if (CHECKPOINT_PATH_TARGET):
         print('============================================')
-        print('precision: ', precision_score(model_labels, model_target_pred, average='macro'))
-        print('recall:    ', recall_score(model_labels, model_target_pred, average='macro'))
-        print('f1:        ', f1_score(model_labels, model_target_pred, average='macro'))
+        # print('precision: ', precision_score(model_labels, model_target_pred, average='macro'))
+        # print('recall:    ', recall_score(model_labels, model_target_pred, average='macro'))
+        # print('f1:        ', f1_score(model_labels, model_target_pred, average='macro'))
+        print(classification_report(model_labels, model_target_pred))
         print('============================================')
 
     for i, _ in enumerate(model_labels):
