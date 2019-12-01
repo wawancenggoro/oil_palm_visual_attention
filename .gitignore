@@ -1,5 +1,6 @@
 NEW_DATASET/*
 NEW_DATASET_AUGMENTED/*
+ORIGINAL_DATASET/*
 results/*
 results_csv/*
 tar_checkpoints
