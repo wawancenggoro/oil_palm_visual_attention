@@ -50,6 +50,9 @@ def densenet121(type, pretrained=False, **kwargs):
     elif (type == "triplelossdensenet"):
         model = TripleLossDenseNet(num_init_features=64, growth_rate=32, block_config=(6, 12, 24, 16),
                      **kwargs)
+    elif (type == "aux-densenet"):
+        model = DenseNetAux(num_init_features=64, growth_rate=32, block_config=(6, 12, 24, 16),
+                     **kwargs)
 
     if pretrained:
         # '.'s are no longer allowed in module names, but pervious _DenseLayer
@@ -636,14 +639,13 @@ class DenseNetStart(nn.Module):
 
         x = self.classifier(x)
         return x
-        
+
 
 # Every Densenet
 # ================================================================
 class DenseNetEvery(nn.Module):
     r"""Densenet-BC model class, based on
     `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`_
-
     Args:
         growth_rate (int) - how many filters to add each layer (`k` in paper)
         block_config (list of 4 ints) - how many layers in each pooling block
@@ -757,7 +759,7 @@ class DenseNetEvery(nn.Module):
 
         db4 = self.classifier(db4)
         return db4
-
+        
 
 # SE Densenet
 # ================================================================
@@ -998,3 +1000,133 @@ class TripleLossDenseNet(nn.Module):
 
         # return [result_1, result_2, (result_1 + result_2) / 2]
         return (result_1 + result_2) / 2
+
+
+# Aux Densenet
+# ================================================================
+class DenseNetAux(nn.Module):
+    r"""Densenet-BC model class, based on
+    `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`_
+    Args:
+        growth_rate (int) - how many filters to add each layer (`k` in paper)
+        block_config (list of 4 ints) - how many layers in each pooling block
+        num_init_features (int) - the number of filters to learn in the first convolution layer
+        bn_size (int) - multiplicative factor for number of bottle neck layers
+          (i.e. bn_size * k features in the bottleneck layer)
+        drop_rate (float) - dropout rate after each dense layer
+        num_classes (int) - number of classification classes
+    """
+
+    def __init__(self, growth_rate=32, block_config=(6, 12, 24, 16),
+                 num_init_features=64, bn_size=4, drop_rate=0, num_classes=1000):
+
+        super(DenseNetAux, self).__init__()
+
+        # First convolution
+        self.features = nn.Sequential(OrderedDict([
+            ('conv0', nn.Conv2d(3, num_init_features,
+                                kernel_size=7, stride=2, padding=3, bias=False)),
+            ('norm0', nn.BatchNorm2d(num_init_features)),
+            ('relu0', nn.ReLU(inplace=True)),
+            ('pool0', nn.MaxPool2d(kernel_size=3, stride=2, padding=1)),
+        ]))
+
+        num_features = num_init_features
+
+        # Block 1
+        num_layers = 6
+        self.denseblock1 = _DenseBlock(num_layers=num_layers, num_input_features=num_features,
+                                  bn_size=bn_size, growth_rate=growth_rate, drop_rate=drop_rate)
+        num_features = num_features + num_layers * growth_rate
+        self.transition1 = _Transition(num_input_features=num_features, num_output_features=num_features // 2)
+        num_features = num_features // 2
+        
+        # Block 2
+        num_layers = 12
+        self.denseblock2 = _DenseBlock(num_layers=num_layers, num_input_features=num_features,
+                                  bn_size=bn_size, growth_rate=growth_rate, drop_rate=drop_rate)
+        num_features = num_features + num_layers * growth_rate
+        self.transition2 = _Transition(num_input_features=num_features, num_output_features=num_features // 2)
+        num_features = num_features // 2
+ 
+        # Block 3
+        num_layers = 24
+        self.denseblock3 = _DenseBlock(num_layers=num_layers, num_input_features=num_features,
+                                  bn_size=bn_size, growth_rate=growth_rate, drop_rate=drop_rate)
+        num_features = num_features + num_layers * growth_rate
+        self.transition3 = _Transition(num_input_features=num_features, num_output_features=num_features // 2)
+        num_features = num_features // 2
+        
+        # Block 4
+        num_layers = 16
+        self.denseblock4 = _DenseBlock(num_layers=num_layers, num_input_features=num_features,
+                                  bn_size=bn_size, growth_rate=growth_rate, drop_rate=drop_rate)
+        num_features = num_features + num_layers * growth_rate
+
+        # BatchNorm5 
+        self.batchNorm5 = nn.BatchNorm2d(num_features)
+
+        # Every VA
+        self.everyconv2dblock1 = nn.Conv2d(2816, 1024, kernel_size=1, stride=1, padding=0)
+        self.everyconv2dblock256 = nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1)
+        self.everyconv2dblock512 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
+        self.everyconv2dblock1024_1 = nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=1)
+        self.everyconv2dblock1024_2 = nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=1)
+
+        # Linear layer
+        self.classifier = nn.Linear(num_features, num_classes)
+        self.classifier1 = nn.Linear(256, num_classes)
+        self.classifier2 = nn.Linear(512, num_classes)
+        self.classifier3 = nn.Linear(1024, num_classes)
+
+        # Softmax Sigmoid
+        self.softmax = nn.Softmax()
+        self.sigmoid = nn.Sigmoid()
+
+        # Official init from torch repo.
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.constant_(m.bias, 0)
+
+    def forward(self, x, gt = 0):
+        # =============================================================
+        # Phase 1 Densenet
+        current_timestamp = time.time()
+
+        db1 = self.denseblock1(self.features(x))
+        attention1 = self.sigmoid(self.everyconv2dblock256(db1))
+        # print_attention(x, attention1, gt, current_timestamp, custom_label='256')
+        att1 = attention1 * db1
+        att1 = F.avg_pool2d(att1, kernel_size=56, stride=1).view(x.size(0), -1)
+        att1 = self.classifier1(att1)
+
+        db2 = self.denseblock2(self.transition1(db1))
+        attention2 = self.sigmoid(self.everyconv2dblock512(db2))
+        # print_attention(x, attention2, gt, current_timestamp, custom_label='512')
+        att2 = attention2 * db2
+        att2 = F.avg_pool2d(att2, kernel_size=28, stride=1).view(x.size(0), -1)
+        att2 = self.classifier2(att2)
+
+        db3 = self.denseblock3(self.transition2(db2))
+        attention3 = self.sigmoid(self.everyconv2dblock1024_1(db3))
+        # print_attention(x, attention3, gt, current_timestamp, custom_label='1024a')
+        att3 = attention3 * db3
+        att3 = F.avg_pool2d(att3, kernel_size=14, stride=1).view(x.size(0), -1)
+        att3 = self.classifier3(att3)
+
+        db4 = self.denseblock4(self.transition3(db3))
+        attention4 = self.sigmoid(self.everyconv2dblock1024_2(db4))
+        # print_attention(x, attention4, gt, current_timestamp, custom_label='1024b')
+        att4 = attention4 * db4
+
+        db4 = F.relu(db4, inplace=True)
+        db4 = F.avg_pool2d(db4, kernel_size=7, stride=1).view(x.size(0), -1)
+
+        db4 = self.classifier(db4)
+ 
+        return db4, att1, att2, att3
