@@ -452,6 +452,7 @@ def train_cnn(MODEL_NAME, PRETRAINED, FREEZE, EPOCHS, BATCH_SIZE, N_LABELS, OPTI
                 or MODEL_NAME == 'every-densenet' 
                 or MODEL_NAME == 'sedensenet'
                 or MODEL_NAME == 'triplelossdensenet'
+                or MODEL_NAME == 'aux-densenet'
             else models.alexnet(pretrained=PRETRAINED) if MODEL_NAME == 'alexnet'
             else modified_alexnet.alexnet(type=MODEL_NAME, pretrained=PRETRAINED) 
                 if MODEL_NAME == 'va-alexnet'
@@ -474,6 +475,7 @@ def train_cnn(MODEL_NAME, PRETRAINED, FREEZE, EPOCHS, BATCH_SIZE, N_LABELS, OPTI
                     or MODEL_NAME == 'every-densenet' 
                     or MODEL_NAME == 'sedensenet'
                     or MODEL_NAME == 'triplelossdensenet'
+                    or MODEL_NAME == 'aux-densenet'
                 else model.classifier[6].in_features 
                     if MODEL_NAME == 'alexnet' 
                     or MODEL_NAME == 'va-alexnet' 
@@ -490,7 +492,7 @@ def train_cnn(MODEL_NAME, PRETRAINED, FREEZE, EPOCHS, BATCH_SIZE, N_LABELS, OPTI
                 else '')
 
     # change classifier class to N_LABELS
-    if (MODEL_NAME == 'densenet' or MODEL_NAME == 'va-densenet' or MODEL_NAME == 'reva-densenet' or MODEL_NAME == 'fp-densenet' or MODEL_NAME == 'start-densenet' or MODEL_NAME == 'every-densenet' or MODEL_NAME == 'sedensenet' or MODEL_NAME == 'triplelossdensenet'):
+    if (MODEL_NAME == 'densenet' or MODEL_NAME == 'va-densenet' or MODEL_NAME == 'reva-densenet' or MODEL_NAME == 'fp-densenet' or MODEL_NAME == 'start-densenet' or MODEL_NAME == 'every-densenet' or MODEL_NAME == 'sedensenet' or MODEL_NAME == 'triplelossdensenet' or MODEL_NAME == 'aux-densenet'):
         model.classifier = nn.Linear(num_ftrs, N_LABELS)
     elif (MODEL_NAME == 'alexnet' or MODEL_NAME == 'va-alexnet' or MODEL_NAME == 'va-alexnet' or MODEL_NAME == 'reva-alexnet' or MODEL_NAME == 'fp-alexnet' or MODEL_NAME == 'start-alexnet' or MODEL_NAME == 'every-alexnet' or MODEL_NAME == 'VGG' or MODEL_NAME == 'VGG_Bn'):
         model.classifier[6] = nn.Linear(num_ftrs, N_LABELS)

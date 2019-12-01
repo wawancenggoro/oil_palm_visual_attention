@@ -17,6 +17,7 @@ start_densenet = "start-densenet"
 every_densenet = "every-densenet"
 sedensenet = "sedensenet"
 triplelossdensenet = "triplelossdensenet"
+aux_densenet = "aux-densenet"
 resnet = "resnet"
 VGG = "VGG"
 VGG_Bn = "VGG-Bn"
@@ -53,7 +54,7 @@ for _, item in enumerate([
                           # [sedensenet, '1564680042'],
                           # [every_densenet, '1564680117'],
 
-                          [every_densenet, '1571533226'],
+                          [aux_densenet, '1571533226'],
                         ]):
     for i in range(1):
         # i = 5

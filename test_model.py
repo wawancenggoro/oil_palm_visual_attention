@@ -32,7 +32,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import csv
-from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, f1_score, classification_report
 import statistics
     
 import modified_densenet
@@ -52,6 +52,7 @@ def init_model(MODEL_NAME, N_LABELS):
                 or MODEL_NAME == 'every-densenet' 
                 or MODEL_NAME == 'sedensenet'
                 or MODEL_NAME == 'triplelossdensenet'
+                or MODEL_NAME == 'aux-densenet'
             else models.alexnet(pretrained=True) if MODEL_NAME == 'alexnet'
             else modified_alexnet.alexnet(type=MODEL_NAME, pretrained=True) 
                 if MODEL_NAME == 'va-alexnet'
@@ -73,6 +74,7 @@ def init_model(MODEL_NAME, N_LABELS):
                     or MODEL_NAME == 'every-densenet' 
                     or MODEL_NAME == 'sedensenet'
                     or MODEL_NAME == 'triplelossdensenet'
+                    or MODEL_NAME == 'aux-densenet'
                 else model.classifier[6].in_features 
                     if MODEL_NAME == 'alexnet' 
                     or MODEL_NAME == 'va-alexnet' 
@@ -88,7 +90,7 @@ def init_model(MODEL_NAME, N_LABELS):
                 else '')
 
     # change classifier class to N_LABELS
-    if (MODEL_NAME == 'densenet' or MODEL_NAME == 'va-densenet' or MODEL_NAME == 'reva-densenet' or MODEL_NAME == 'fp-densenet' or MODEL_NAME == 'start-densenet' or MODEL_NAME == 'every-densenet' or MODEL_NAME == 'sedensenet' or MODEL_NAME == 'triplelossdensenet'):
+    if (MODEL_NAME == 'densenet' or MODEL_NAME == 'va-densenet' or MODEL_NAME == 'reva-densenet' or MODEL_NAME == 'fp-densenet' or MODEL_NAME == 'start-densenet' or MODEL_NAME == 'every-densenet' or MODEL_NAME == 'sedensenet' or MODEL_NAME == 'triplelossdensenet' or MODEL_NAME == 'aux-densenet'):
         model.classifier = nn.Linear(num_ftrs, N_LABELS)
     elif (MODEL_NAME == 'alexnet' or MODEL_NAME == 'va-alexnet' or MODEL_NAME == 'va-alexnet' or MODEL_NAME == 'reva-alexnet' or MODEL_NAME == 'fp-alexnet' or MODEL_NAME == 'start-alexnet' or MODEL_NAME == 'VGG' or MODEL_NAME == 'VGG_Bn'):
         model.classifier[6] = nn.Linear(num_ftrs, N_LABELS)
@@ -96,6 +98,12 @@ def init_model(MODEL_NAME, N_LABELS):
         model.fc = nn.Linear(num_ftrs, N_LABELS)
     else:
         raise ValueError("Error model name")
+
+
+    if (MODEL_NAME == 'aux-densenet'):
+        model.classifier1 = nn.Linear(model.classifier1.in_features, N_LABELS)
+        model.classifier2 = nn.Linear(model.classifier2.in_features, N_LABELS)
+        model.classifier3 = nn.Linear(model.classifier3.in_features, N_LABELS)
 
     return model
 
@@ -192,7 +200,12 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
                     outputs = model(inputs, labels)
                 except:
                     outputs = model(inputs)
-                outputs_pred = torch.max(outputs, dim=1)[1].cpu().data.numpy()
+
+                if len(outputs) == 4:
+                    outputs_pred = torch.max(outputs[1], dim=1)[1].cpu().data.numpy()
+                else:
+                    outputs_pred = torch.max(outputs, dim=1)[1].cpu().data.numpy()
+
                 model_pred.extend(outputs_pred)
                 if (CHECKPOINT_PATH_TARGET):
                     try:
@@ -207,14 +220,16 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
     if (CHECKPOINT_PATH_TARGET):
         print(confusion_matrix(model_labels, model_target_pred, labels=[1, 0, 2, 4, 3, 5, 6]))
     print('============================================')
-    print('precision: ', precision_score(model_labels, model_pred, average='macro'))
-    print('recall:    ', recall_score(model_labels, model_pred, average='macro'))
-    print('f1:        ', f1_score(model_labels, model_pred, average='macro'))
+    # print('precision: ', precision_score(model_labels, model_pred, average='macro'))
+    # print('recall:    ', recall_score(model_labels, model_pred, average='macro'))
+    # print('f1:        ', f1_score(model_labels, model_pred, average='macro'))
+    print(classification_report(model_labels, model_pred))
     if (CHECKPOINT_PATH_TARGET):
         print('============================================')
-        print('precision: ', precision_score(model_labels, model_target_pred, average='macro'))
-        print('recall:    ', recall_score(model_labels, model_target_pred, average='macro'))
-        print('f1:        ', f1_score(model_labels, model_target_pred, average='macro'))
+        # print('precision: ', precision_score(model_labels, model_target_pred, average='macro'))
+        # print('recall:    ', recall_score(model_labels, model_target_pred, average='macro'))
+        # print('f1:        ', f1_score(model_labels, model_target_pred, average='macro'))
+        print(classification_report(model_labels, model_target_pred))
         print('============================================')
 
     for i, _ in enumerate(model_labels):
