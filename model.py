@@ -258,6 +258,15 @@ def train_model(
                             output_acc += accuracy_score(labels.cpu().data.numpy(), combined_pred.cpu().data.numpy())
 
                             loss = sum(current_loss[0:-1]) / len(current_loss[0:-1]) + (current_loss[-1] / 2)
+                        elif(len(outputs) == 4):
+                            current_loss = []
+
+                            for output_item in outputs:
+                                current_loss.append(criterion(output_item, labels))
+
+                            loss = sum(current_loss)
+                            outputs_pred = torch.max(outputs[0], dim=1)[1]
+                            output_acc += accuracy_score(labels.cpu().data.numpy(), outputs_pred.cpu().data.numpy())
                         else:
                             # get output pred and get accuracy
                             if distillate_time != '':
@@ -294,6 +303,15 @@ def train_model(
                         
                         output_acc += accuracy_score(labels.cpu().data.numpy(), combined_pred.cpu().data.numpy())
                         loss = sum(current_loss[0:-1]) / len(current_loss[0:-1]) + (current_loss[-1] / 2)
+                    elif(len(outputs) == 4):
+                            current_loss = []
+
+                            for output_item in outputs:
+                                current_loss.append(criterion(output_item, labels))
+
+                            loss = sum(current_loss)
+                            outputs_pred = torch.max(outputs[0], dim=1)[1]
+                            output_acc += accuracy_score(labels.cpu().data.numpy(), outputs_pred.cpu().data.numpy())
                     else:
                         if distillate_time != '':
                             loss = criterion(outputs, get_distillate_output(distillate_results, distillate_index, outputs.shape[0]))

@@ -6,4 +6,5 @@ results_csv/*
 tar_checkpoints
 runs
 attention_image/*
+_archive/
 __pycache__
