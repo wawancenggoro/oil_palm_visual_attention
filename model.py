@@ -258,7 +258,7 @@ def train_model(
                             output_acc += accuracy_score(labels.cpu().data.numpy(), combined_pred.cpu().data.numpy())
 
                             loss = sum(current_loss[0:-1]) / len(current_loss[0:-1]) + (current_loss[-1] / 2)
-                        elif(len(outputs) == 4):
+                        elif(model.name == 'aux-densenet-'):
                             current_loss = []
 
                             for output_item in outputs:
@@ -518,6 +518,11 @@ def train_cnn(MODEL_NAME, PRETRAINED, FREEZE, EPOCHS, BATCH_SIZE, N_LABELS, OPTI
         model.fc = nn.Linear(num_ftrs, N_LABELS)
     else:
         raise ValueError("Error model name")
+
+    if (MODEL_NAME == 'aux-densenet'):
+        model.classifier1 = nn.Linear(model.classifier1.in_features, N_LABELS)
+        model.classifier2 = nn.Linear(model.classifier2.in_features, N_LABELS)
+        model.classifier3 = nn.Linear(model.classifier3.in_features, N_LABELS)
 
     if CHECKPOINT_PATH != '':
         model = load_checkpoint(model, CHECKPOINT_PATH)
