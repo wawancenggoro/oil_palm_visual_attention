@@ -184,7 +184,8 @@ def test_cnn(MODEL_NAME, MODEL_NAME_TARGET, BATCH_SIZE, N_LABELS, PATH_TO_IMAGES
 
     for phase in ['test']:
         model.train(False)
-        model_target.train(False)
+        if (CHECKPOINT_PATH_TARGET):
+            model_target.train(False)
         for data in dataloaders[phase]:
             loading_bar = f'={loading_bar}'
             loading_bar = loading_bar[:dataloaders_length]

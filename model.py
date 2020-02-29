@@ -24,6 +24,7 @@ import os, glob
 import time
 import datetime
 import pdb
+import math
 from shutil import copyfile
 from shutil import rmtree
 from pathlib import Path
@@ -197,15 +198,12 @@ def train_model(
         training_print = 0
         val_print = 0
 
-        # loading bar
-        loading_bar = ''
-        dataloaders_length = len(dataloaders['train']) + len(dataloaders['val'])
-        for i in range(dataloaders_length):
-            loading_bar += '-'
- 
         distillate_index = 0
         if distillate_time != '':
             distillate_results = np.load(f'results_distillation/d-{distillate_time}.npy')
+
+        epoch_index = 1
+        dataloaders_length = len(dataloaders['train']) + len(dataloaders['val'])
 
         # set model to train or eval mode based on whether we are in train or
         # val; necessary to get correct predictions given batchnorm
@@ -228,9 +226,14 @@ def train_model(
                 batch_size = inputs.shape[0]
 
                 # loading bar progress
-                loading_bar = f'={loading_bar}'
-                loading_bar = loading_bar[:dataloaders_length]
-                print(f'Steps: {loading_bar}', end='\r')
+                loading_bar = ''
+                loading_bar_length = 50
+                epoch_index += 1
+                for i in range(loading_bar_length - 2 - math.floor(epoch_index / dataloaders_length * loading_bar_length)):
+                    loading_bar = f'-{loading_bar}'
+                for i in range(math.floor(epoch_index / dataloaders_length * loading_bar_length)):
+                    loading_bar = f'={loading_bar}'
+                print(f'Steps {phase}: {loading_bar}', end='\r')
 
                 # ===========================================================
                 # train datasets
