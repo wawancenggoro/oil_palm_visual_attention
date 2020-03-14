@@ -48,13 +48,11 @@ DISTILLATE_WITH = ''
 # densenet, va_densenet, reva_densenet, fp_densenet, start_densenet, every_densenet, sedensenet, triplelossdensenet
 # resnet, VGG, VGG_Bn
 for _, item in enumerate([ 
-                          # [densenet, '1564583958'],
-                          # [alexnet, '1564862020'],
-                          # [fp_densenet, '1564683135'],
-                          # [sedensenet, '1564680042'],
-                          # [every_densenet, '1564680117'],
-
-                          [sedensenet, '1581208768'],
+                          [densenet, '1570946462'],
+                          # [alexnet, '1581160238'],
+                          # [sedensenet, '1581208768'],
+                          # [fp_densenet, '1581167572'],
+                          # [aux_densenet, '1571533226'],
                         ]):
     for i in range(1):
         i = 1
